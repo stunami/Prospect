@@ -62,5 +62,4 @@ class Socket extends AdapterAbstract implements AdapterInterface
 
         return $response;
     }
-
 }
