@@ -134,27 +134,38 @@ class Response implements ResponseInterface
 
   protected function parseResponse($response)
   {
-    list($response_headers,$body) = explode("\r\n\r\n",$response,2);
-
-    $header_lines = explode("\r\n",$response_headers);
-
-    // first line of headers is the HTTP response code
-    $http_response_line = array_shift($header_lines);
-
     $code = null;
-    if (preg_match('@^HTTP/[0-9]\.[0-9] ([0-9]{3})@',$http_response_line, $matches)) {
-      $code = $matches[1];
+    
+    if (preg_match('@^HTTP/[0-9]\.[0-9] ([0-9]{3})\s[^\r]+(\r\n\r\n)?@',$response, $matches)) {
+		$code = $matches[1];
+		$response = str_replace($matches[0], '', $response);
+	}    
+	
+	$body = '';
+	
+    $sections = explode("\r\n\r\n",$response,2);
+    $response_headers = $sections[0];
+    
+    if (count($sections) > 1)
+    {
+		$body = $sections[1];    	
     }
-
+    
+    $header_lines = explode("\r\n",$response_headers);
     $cookies = new CookieCollection();
     $headers = new HeaderCollection();
     foreach ($header_lines as $line) {
-      list($name, $value) = explode(': ', $line);
+	  if (preg_match('@^HTTP/[0-9]\.[0-9] ([0-9]{3})@',$line, $matches)) {
+		$code = $matches[1];
+      } elseif(!empty($line)) {
 
-      if ($name == 'Set-Cookie') {
-        $cookies->parse($value);
-      } else {
-        $headers->parse($name, $value);
+        list($name, $value) = explode(': ', $line);
+
+        if ($name == 'Set-Cookie') {
+          $cookies->parse($value);
+        } else {
+          $headers->parse($name, $value);
+        }
       }
     }
 

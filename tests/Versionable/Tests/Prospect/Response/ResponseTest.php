@@ -32,10 +32,28 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
     }
     
-    public function testParse()
+    public function parseDataProvider()
     {
-      $string = file_get_contents(__DIR__ . '/../../../../data/response/complete.txt');
-      $content = file_get_contents(__DIR__ . '/../../../../data/response/content.txt');
+		return array(
+			array(__DIR__ . '/../../../../data/response/complete.txt', __DIR__ . '/../../../../data/response/content.txt'),
+			array(__DIR__ . '/../../../../data/response/proxy.txt', __DIR__ . '/../../../../data/response/content.txt'),
+			array(__DIR__ . '/../../../../data/response/proxy-no-space.txt', __DIR__ . '/../../../../data/response/content.txt'),
+			array(__DIR__ . '/../../../../data/response/no-body.txt', null),
+		);
+    }
+
+	/**
+	 * @dataProvider parseDataProvider
+	 */
+    public function testParse($responseFile, $responseContentFile)
+    {
+      $string = file_get_contents($responseFile);
+      
+      $content = '';
+      
+      if (!empty($responseContentFile)) {
+	      $content = file_get_contents($responseContentFile);
+	  }
       
       $this->object->parse($string);
       
